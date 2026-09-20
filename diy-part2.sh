@@ -7,13 +7,8 @@
 # Author: P3TERX
 # Blog: https://p3terx.com
 #============================================================
-
 # Modify default IP
 sed -i 's/192.168.6.1/192.168.233.1/g' package/base-files/files/bin/config_generate
-
-# Limit OpenClash sysupgrade backups to persistent user data. Downloadable
-# runtime assets such as the core and GeoIP/GeoSite databases can otherwise
-# make the backup too large to restore safely on devices with small flash.
 
 # ============================================================
 # 克隆第三方插件
@@ -37,33 +32,3 @@ LUCKY_CTRL=package/lucky/luci-app-lucky/luasrc/controller/lucky.lua
 sed -i 's#luci.sys.exec("/usr/bin/lucky -info")#luci.sys.exec("ulimit -v unlimited 2>/dev/null; /usr/bin/lucky -info")#' "$LUCKY_CTRL"
 sed -i 's#luci.sys.exec("lucky -baseConfInfo -cd "..configPath)#luci.sys.exec("ulimit -v unlimited 2>/dev/null; lucky -baseConfInfo -cd "..configPath)#' "$LUCKY_CTRL"
 sed -i 's#luci.sys.exec(cmd)#luci.sys.exec("ulimit -v unlimited 2>/dev/null; "..cmd)#' "$LUCKY_CTRL"
-
-# --- quickfile ---
-log "克隆 quickfile"
-git clone --depth=1 https://github.com/sbwml/luci-app-quickfile package/quickfile
-
-# --- bandix ---
-log "克隆 bandix"
-git clone --depth=1 https://github.com/timsaya/luci-app-bandix package/bandix
-git clone --depth=1 https://github.com/timsaya/openwrt-bandix package/openwrt-bandix
-
-# ============================================================
-# 注入 Nginx Quickfile 修复
-# ============================================================
-log "注入 Nginx Quickfile 修复"
-mkdir -p package/base-files/files/etc/uci-defaults
-cat > package/base-files/files/etc/uci-defaults/99-fix-nginx-quickfile << 'EOF'
-#!/bin/sh
-uci set nginx.global.uci_enable='true'
-uci del nginx._lan; uci del nginx._redirect2ssl
-uci add nginx server; uci rename nginx.@server[0]='_lan'
-uci set nginx._lan.server_name='_lan'
-uci add_list nginx._lan.listen='80 default_server'
-uci add_list nginx._lan.listen='[::]:80 default_server'
-uci add_list nginx._lan.include='conf.d/*.locations'
-uci set nginx._lan.access_log='off'
-uci commit nginx
-/etc/init.d/nginx restart
-exit 0
-EOF
-chmod +x package/base-files/files/etc/uci-defaults/99-fix-nginx-quickfile
