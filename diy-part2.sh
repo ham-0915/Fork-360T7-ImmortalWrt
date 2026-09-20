@@ -14,6 +14,29 @@ sed -i 's/192.168.6.1/192.168.233.1/g' package/base-files/files/bin/config_gener
 # 克隆第三方插件
 # ============================================================
 
+# ============================================================
+# Golang + lang rust（部分插件编译依赖）
+# ============================================================
+log "替换 Golang → 27.x"
+rm -rf feeds/packages/lang/golang
+git clone --depth=1 -b 27.x https://github.com/sbwml/packages_lang_golang feeds/packages/lang/golang
+
+# log "修复 lang-rust 404 问题"
+# rm -rf feeds/packages/lang/rust
+# git clone --depth=1 https://github.com/sbwml/packages_lang_rust feeds/packages/lang/rust
+
+# ============================================================
+# 克隆官方 Passwall + 依赖
+# ============================================================
+log "克隆官方 Passwall"
+# 移除 openwrt feeds 自带的核心库
+rm -rf feeds/packages/net/{xray-core,v2ray-geodata,sing-box,chinadns-ng,dns2socks,hysteria,ipt2socks,microsocks,naiveproxy,shadowsocks-rust,shadowsocksr-libev,simple-obfs,tcping,v2ray-plugin,xray-plugin,geoview,shadow-tls}
+# 移除 openwrt feeds 过时的luci版本
+rm -rf feeds/luci/applications/luci-app-passwall
+
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall-packages.git package/passwall-packages
+git clone --depth=1 https://github.com/Openwrt-Passwall/openwrt-passwall.git package/passwall
+
 # --- nikki ---
 log "克隆 nikki"
 git clone --depth=1 https://github.com/nikkinikki-org/OpenWrt-nikki package/nikki
